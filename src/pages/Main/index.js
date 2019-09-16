@@ -1,23 +1,70 @@
-import React from 'react';
+import React, { Component } from 'react';
 
-import { FaGitAlt, FaPlus } from 'react-icons/fa';
+import { FaGithubAlt, FaPlus, FaSpinner } from 'react-icons/fa';
 import { Container, Form, SubmitButton } from './styles';
 
-export default function Main() {
-  return (
-    <Container>
-      <h1>
-        <FaGitAlt />
-        Repositórios
-      </h1>
+import api from '../../services/api';
 
-      <Form onSubmit={() => {}}>
-        <input type="text" placeholder="Adicionar repositório" />
+export default class Main extends Component {
+  // eslint-disable-next-line react/state-in-constructor
+  state = {
+    newRepo: '',
+    repositories: [],
+    loading: false,
+  };
 
-        <SubmitButton disabled>
-          <FaPlus color="#fff" size={14} />
-        </SubmitButton>
-      </Form>
-    </Container>
-  );
+  handleInputChange = e => {
+    this.setState({ newRepo: e.target.value });
+  };
+
+  handleSubmit = async e => {
+    e.preventDefault();
+
+    this.setState({ loading: true });
+
+    const { newRepo, repositories } = this.state;
+    const response = await api.get(`/repos/${newRepo}`);
+
+    const data = {
+      name: response.data.full_name,
+    };
+
+    console.log(data.name);
+
+    this.setState({
+      repositories: [...repositories, data],
+      newRepo: '',
+      loading: false,
+    });
+  };
+
+  render() {
+    const { newRepo, loading } = this.state;
+
+    return (
+      <Container>
+        <h1>
+          <FaGithubAlt />
+          Repositórios
+        </h1>
+
+        <Form onSubmit={this.handleSubmit}>
+          <input
+            type="text"
+            placeholder="Adicionar repositório"
+            value={newRepo}
+            onChange={this.handleInputChange}
+          />
+
+          <SubmitButton loading={loading}>
+            {loading ? (
+              <FaSpinner color="#fff" size={14} />
+            ) : (
+              <FaPlus color="#fff" size={14} />
+            )}
+          </SubmitButton>
+        </Form>
+      </Container>
+    );
+  }
 }
